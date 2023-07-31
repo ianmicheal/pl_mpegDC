@@ -105,8 +105,12 @@ int main() {
 
     int current_frame = 0;
     int done = 0;
+    uint64_t start_time, end_time;
 
     while (!done) {
+        // Get the start time before rendering the current video frame
+        start_time = timer_us_gettime64();
+
         // Render the current video frame
         render_video_frame(video_frames);
 
@@ -117,7 +121,9 @@ int main() {
         pvr_list_finish();
         pvr_scene_finish();
 
-        printf("Rendering frame %d\n", current_frame);
+        // Calculate the time taken to render the frame
+        end_time = timer_us_gettime64();
+        printf("Rendering frame %d (Time: %" PRIu64 " us)\n", current_frame, end_time - start_time);
 
         // Delay to control video playback speed (adjust this as needed)
         timer_spin_sleep(1000000 / 30); // Assuming 30 FPS video
@@ -194,6 +200,7 @@ void render_video_frame(uint16_t* frame_data) {
 
     pvr_scene_finish(); // Finish PVR rendering scene
 }
+
 
 
 
