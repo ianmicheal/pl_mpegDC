@@ -1,3 +1,16 @@
+
+
+	Name:  PL_MPEGDC
+	Copyright: 7/31/20 
+	Author: Ian micheal 
+	Date: 31/07/23 09:03
+	Description: Dreamcast preliminary port KallistiOS video pvr no sound 
+	https://www.youtube.com/@IanMicheal/videos
+	https://github.com/ianmicheal
+
+
+Not working or i did not encode the video file correct 
+
 # PL_MPEG - MPEG1 Video decoder, MP2 Audio decoder, MPEG-PS demuxer
 
 Single-file MIT licensed library for C/C++
