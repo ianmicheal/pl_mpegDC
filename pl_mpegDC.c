@@ -36,8 +36,6 @@ SOFTWARE.
 */
 
 
-
-
 #include <kos.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,6 +44,7 @@ SOFTWARE.
 
 #define FRAME_WIDTH 512
 #define FRAME_HEIGHT 512
+#define FRAME_RATE 30 // Adjust this value to control the frame rate (frames per second)
 
 // Function to initialize KOS and PVR
 void init_kos_pvr();
@@ -106,6 +105,7 @@ int main() {
     int current_frame = 0; // Declare current_frame here
     int done = 0;
     uint64_t start_time, end_time;
+    uint64_t frame_interval = 1000000 / FRAME_RATE; // Time interval between frames (microseconds)
 
     while (!done) {
         // Get the start time before rendering the current video frame
@@ -125,8 +125,11 @@ int main() {
         end_time = timer_us_gettime64();
         printf("Rendering frame %d (Time: %" PRIu64 " us)\n", current_frame, end_time - start_time);
 
-        // Delay to control video playback speed (adjust this as needed)
-        timer_spin_sleep(1000000 / 30); // Assuming 30 FPS video
+        // Delay to control video playback speed
+        uint64_t elapsed_time = end_time - start_time;
+        if (elapsed_time < frame_interval) {
+            timer_spin_sleep(frame_interval - elapsed_time);
+        }
 
         // Increment current_frame to display the next video frame
         current_frame++;
@@ -145,7 +148,7 @@ int main() {
 
 void init_kos_pvr() {
     pvr_init_defaults(); // Initialize KOS and PVR with default settings
-  //  vid_set_mode(DM_640x480, PM_RGB565); // Set video mode to 640x480 with RGB565 pixel format
+    // vid_set_mode(DM_640x480, PM_RGB565); // Set video mode to 640x480 with RGB565 pixel format
 }
 
 void render_video_frame(uint16_t* frame_data) {
