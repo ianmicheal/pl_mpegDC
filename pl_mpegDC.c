@@ -44,8 +44,8 @@ SOFTWARE.
 #define PL_MPEG_IMPLEMENTATION
 #include "pl_mpeg.h"
 
-#define FRAME_WIDTH 640
-#define FRAME_HEIGHT 480
+#define FRAME_WIDTH 512
+#define FRAME_HEIGHT 512
 
 // Function to initialize KOS and PVR
 void init_kos_pvr();
@@ -72,6 +72,7 @@ int main() {
     // Get video properties
     int frame_width = plm_get_width(mpeg);
     int frame_height = plm_get_height(mpeg);
+    printf("Video width: %d, height: %d\n", frame_width, frame_height);
 
     if (frame_width != FRAME_WIDTH || frame_height != FRAME_HEIGHT) {
         printf("Video frame size mismatch\n");
@@ -79,7 +80,6 @@ int main() {
     }
 
     plm_frame_t *frame; // Declare a pointer to a plm_frame_t struct
-    int x, y;
 
     // Loop through the frames of the video and count them while decoding
     while (1) {
@@ -90,41 +90,15 @@ int main() {
             break;
         }
 
-        // Convert the frame data to RGB565 and store it in video_frames array
-        for (y = 0; y < FRAME_HEIGHT; y++) {
-            for (x = 0; x < FRAME_WIDTH; x++) {
-                uint8_t* yuv_data = frame->y.data; // Get the pointer to the frame data
-                uint8_t y_value, u_value, v_value;
+        printf("Decoding frame %d\n", num_frames);
 
-                // Calculate the index in the data array for the current pixel
-                int y_index = y * frame_width + x;
-                int uv_index = (y / 2) * (frame_width / 2) + x / 2;
-
-                // Get YUV values for the pixel
-                y_value = yuv_data[y_index];
-                u_value = frame->cb.data[uv_index];
-                v_value = frame->cr.data[uv_index];
-
-                // Convert YUV to RGB565
-                uint8_t r, g, b;
-                r = (298 * (y_value - 16) + 409 * (v_value - 128) + 128) >> 8;
-                g = (298 * (y_value - 16) - 100 * (u_value - 128) - 208 * (v_value - 128) + 128) >> 8;
-                b = (298 * (y_value - 16) + 516 * (u_value - 128) + 128) >> 8;
-
-                // Clamp RGB values
-                if (r < 0) r = 0;
-                if (r > 255) r = 255;
-                if (g < 0) g = 0;
-                if (g > 255) g = 255;
-                if (b < 0) b = 0;
-                if (b > 255) b = 255;
-
-                video_frames[y * FRAME_WIDTH + x] = PVR_PACK_COLOR(1.0f, r / 255.0f, g / 255.0f, b / 255.0f);
-            }
-        }
+        // Copy the frame data directly to video_frames array (assuming YUV422 format)
+        memcpy(video_frames, frame->y.data, FRAME_WIDTH * FRAME_HEIGHT * 2);
 
         num_frames++; // Increment the frame counter for each successfully decoded frame.
     }
+
+    printf("Total frames: %d\n", num_frames);
 
     // Close the video file
     plm_destroy(mpeg);
@@ -142,6 +116,8 @@ int main() {
         pvr_list_begin(PVR_LIST_TR_POLY);
         pvr_list_finish();
         pvr_scene_finish();
+
+        printf("Rendering frame %d\n", current_frame);
 
         // Delay to control video playback speed (adjust this as needed)
         timer_spin_sleep(1000000 / 30); // Assuming 30 FPS video
@@ -171,10 +147,16 @@ void render_video_frame(uint16_t* frame_data) {
     pvr_poly_hdr_t hdr;
     pvr_vertex_t vert;
 
-    pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_RGB565, FRAME_WIDTH, FRAME_HEIGHT, frame_data, PVR_FILTER_BILINEAR);
-    pvr_poly_compile(&hdr, &cxt);
-    pvr_prim(&hdr, sizeof(hdr));
+    pvr_scene_begin(); // Begin PVR rendering scene
 
+    pvr_list_begin(PVR_LIST_OP_POLY); // Begin PVR rendering list for opaque polygons
+
+    // Use PVR_TXRFMT_YUV422 format instead of PVR_TXRFMT_RGB565
+    pvr_poly_cxt_txr(&cxt, PVR_LIST_OP_POLY, PVR_TXRFMT_YUV422 | PVR_TXRFMT_NONTWIDDLED,
+                    FRAME_WIDTH, FRAME_HEIGHT, frame_data, PVR_FILTER_BILINEAR);
+    pvr_poly_compile(&hdr, &cxt);
+
+    // Set up vertex data for a fullscreen quad
     vert.argb = PVR_PACK_COLOR(1.0f, 1.0f, 1.0f, 1.0f);
     vert.oargb = 0;
     vert.flags = PVR_CMD_VERTEX;
@@ -207,5 +189,13 @@ void render_video_frame(uint16_t* frame_data) {
     vert.v = 1.0;
     vert.flags = PVR_CMD_VERTEX_EOL;
     pvr_prim(&vert, sizeof(vert));
+
+    pvr_list_finish(); // Finish PVR rendering list for opaque polygons
+
+    pvr_scene_finish(); // Finish PVR rendering scene
 }
+
+
+
+
 
