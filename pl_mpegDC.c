@@ -103,55 +103,42 @@ int main() {
     // Close the video file
     plm_destroy(mpeg);
 
-// Loop through the frames of the video and render them
-int current_frame = 0;
-int done = 0;
-uint64_t start_time, end_time;
+    int current_frame = 0; // Declare current_frame here
+    int done = 0;
+    uint64_t start_time, end_time;
 
-while (!done) {
-    // Use plm_decode_video to decode the current video frame
-    frame = plm_decode_video(mpeg);
-    if (!frame) {
-        // No more frames to decode, exit the loop
-        break;
+    while (!done) {
+        // Get the start time before rendering the current video frame
+        start_time = timer_us_gettime64();
+
+        // Render the current video frame
+        render_video_frame(&video_frames[current_frame * FRAME_WIDTH * FRAME_HEIGHT]);
+
+        // Display the rendered frame
+        pvr_wait_ready();
+        pvr_scene_begin();
+        pvr_list_begin(PVR_LIST_TR_POLY);
+        pvr_list_finish();
+        pvr_scene_finish();
+
+        // Calculate the time taken to render the frame
+        end_time = timer_us_gettime64();
+        printf("Rendering frame %d (Time: %" PRIu64 " us)\n", current_frame, end_time - start_time);
+
+        // Delay to control video playback speed (adjust this as needed)
+        timer_spin_sleep(1000000 / 30); // Assuming 30 FPS video
+
+        // Increment current_frame to display the next video frame
+        current_frame++;
+        if (current_frame >= num_frames) {
+            current_frame = 0;
+        }
+
+        MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, st)
+        if (st->buttons & CONT_START)
+            done = 1;
+        MAPLE_FOREACH_END()
     }
-
-    printf("Decoding and rendering frame %d\n", current_frame);
-
-    // Copy the frame data directly to video_frames array (assuming YUV422 format)
-    memcpy(video_frames, frame->y.data, FRAME_WIDTH * FRAME_HEIGHT * 2);
-
-    // Get the start time before rendering the current video frame
-    start_time = timer_us_gettime64();
-
-    // Render the current video frame
-    render_video_frame(video_frames);
-
-    // Display the rendered frame
-    pvr_wait_ready();
-    pvr_scene_begin();
-    pvr_list_begin(PVR_LIST_TR_POLY);
-    pvr_list_finish();
-    pvr_scene_finish();
-
-    // Calculate the time taken to render the frame
-    end_time = timer_us_gettime64();
-    printf("Rendering frame %d (Time: %" PRIu64 " us)\n", current_frame, end_time - start_time);
-
-    // Delay to control video playback speed (adjust this as needed)
-    timer_spin_sleep(1000000 / 30); // Assuming 30 FPS video
-
-    // Increment current_frame to decode and render the next video frame
-    current_frame++;
-    if (current_frame >= num_frames) {
-        current_frame = 0;
-    }
-
-    MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, st)
-    if (st->buttons & CONT_START)
-        done = 1;
-    MAPLE_FOREACH_END()
-}
 
     return 0;
 }
