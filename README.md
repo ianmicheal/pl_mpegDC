@@ -1,12 +1,22 @@
 
 
-	Name:  PL_MPEGDC
-	Copyright: 7/31/20 
-	Author: Ian micheal 
-	Date: 31/07/23 09:03
-	Description: Dreamcast preliminary port KallistiOS video pvr no sound 
-	https://www.youtube.com/@IanMicheal/videos
-	https://github.com/ianmicheal
+
+Name:  PL_MPEGDC
+Copyright: 7/31/20 
+Author: Ian micheal + Magnes(Bertholet)
+Date: 31/07/23 09:03
+Description: Dreamcast preliminary port KallistiOS video pvr no sound 
+https://www.youtube.com/@IanMicheal/videos
+https://github.com/ianmicheal
+Update: Ian micheal
+Update this so far decode frames until the end of the video is reached.
+It dynamically determines the number of frames in the video file without using a hard-coded value.
+So it will play the whole video now 09/08/23 03:06
+Removed mpegDC.c:66:25: warning: unused variable 'b8' [-Wunused-variable]
+mpegDC.c:66:21: warning: unused variable 'g8' [-Wunused-variable]
+mpegDC.c:66:17: warning: unused variable 'r8' [-Wunused-variable]
+Added back maple press start to exit at any time
+*/
 
 
 Not working or i did not encode the video file correct 
