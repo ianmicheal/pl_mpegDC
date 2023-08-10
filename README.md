@@ -24,6 +24,7 @@ https://github.com/ianmicheal/pl_mpegDC/assets/59771322/b9103deb-06e6-444b-b7f9-
 - **09/08/23 03:06:** Removed `mpegDC.c:66:21: warning: unused variable 'g8' [-Wunused-variable]`
 - **09/08/23 03:06:** Removed `mpegDC.c:66:17: warning: unused variable 'r8' [-Wunused-variable]`
 - **09/08/23 03:06:** Added back maple press start to exit at any time
+- **10/08/23 15:53:** Added using the  plm buffer instance and video decoder using the plm buffer Ian Micheal
 
 
 # PL_MPEG - MPEG1 Video decoder, MP2 Audio decoder, MPEG-PS demuxer
