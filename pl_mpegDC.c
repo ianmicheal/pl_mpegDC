@@ -41,6 +41,8 @@ Removed mpegDC.c:66:25: warning: unused variable 'b8' [-Wunused-variable]
 mpegDC.c:66:21: warning: unused variable 'g8' [-Wunused-variable]
 mpegDC.c:66:17: warning: unused variable 'r8' [-Wunused-variable]
 Added back maple press start to exit at any time
+Name:Ian micheal 
+10/08/23 15:53 Added using the  plm buffer instance and video decoder using the plm buffer
 */
 
 #include <kos.h>
@@ -92,9 +94,18 @@ int main() {
     pvr_set_bg_color(0.0f, 0.0f, 0.0f);
     pvr_scene_finish();
 
-    mpeg = plm_create_with_filename("/rd/queen.mpeg");
-    if (!mpeg) {
+    // Create a plm buffer instance with the default video file
+    plm_buffer_t *plm_buffer = plm_buffer_create_with_filename("/rd/queen.mpeg");
+    if (!plm_buffer) {
         printf("Error opening video file\n");
+        return -1;
+    }
+
+    // Create a video decoder using the plm buffer
+    mpeg = plm_create_with_buffer(plm_buffer, 1); // Set destroy_when_done to 1
+    if (!mpeg) {
+        printf("Error creating video decoder\n");
+        plm_buffer_destroy(plm_buffer);
         return -1;
     }
     plm_set_audio_enabled(mpeg, 0);
@@ -105,6 +116,8 @@ int main() {
 
     if (frame_width != FRAME_WIDTH || frame_height != FRAME_HEIGHT) {
         printf("Video frame size mismatch\n");
+        plm_destroy(mpeg);
+        plm_buffer_destroy(plm_buffer);
         return -1;
     }
 
@@ -144,8 +157,9 @@ int main() {
             goto exit_loop;
         MAPLE_FOREACH_END()
     }
-    exit_loop:
+exit_loop:
     plm_destroy(mpeg);
+    plm_buffer_destroy(plm_buffer);
 
     return 0;
 }
