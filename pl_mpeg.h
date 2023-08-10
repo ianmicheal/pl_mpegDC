@@ -462,9 +462,13 @@ plm_frame_t *plm_seek_frame(plm_t *self, double time, int seek_exact);
 
 
 // The default size for buffers created from files or by the high-level API
-
+/*
+	Name: Ian micheal
+	Date: 10/08/23 15:59
+	Description: To suit the Dreamcast not some unlimited memory system
+*/
 #ifndef PLM_BUFFER_DEFAULT_SIZE
-#define PLM_BUFFER_DEFAULT_SIZE (128 * 1024)
+#define PLM_BUFFER_DEFAULT_SIZE (8 * 1024 * 1024) // 8MB
 #endif
 
 
